@@ -19,4 +19,3 @@ dotnet dupimg.dll <target_folder> [/t <threshorld>] [/move <dest_folder>] [/dele
 #### /delete \<target_folder\>  
 キャッシュから削除するフォルダのパス
 
-### 使い方
