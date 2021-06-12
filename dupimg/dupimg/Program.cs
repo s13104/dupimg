@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -29,11 +30,19 @@ namespace dupimg
             //キャッシュ設定ファイルの読込み
             var cacheSettings = new CacheManager<SimilarImageCache, HashedImage>("dupimg.cache.json");
 
-            //Deleteスイッチが指定されていたら最優先で処理する
-            if (myArgs.IsDelete)
+            //CacheListスイッチが指定されている場合の処理
+            if(myArgs.IsCacheList)
+            {
+                //キャッシュ設定ファイルの中身を表示する
+                foreach(var txt in CacheList(cacheSettings.EnumerateSettings())) Console.WriteLine(txt);
+                return;
+            }
+
+            //CacheDeleteオプションが指定されている場合の処理
+            if (myArgs.IsCacheDelete)
             {
                 //キャッシュファイルを削除
-                if (cacheSettings.Delete(myArgs.SrcPath)) Console.WriteLine("Cache deleted.");
+                if (cacheSettings.Delete(myArgs.CacheName)) Console.WriteLine("Cache deleted.");
                 return;
             }
 
@@ -46,10 +55,6 @@ namespace dupimg
             ProcessCompare(myArgs, similar, cache);
             //比較結果をキャッシュに反映
             cache.Save();
-#if DEBUG
-            Console.WriteLine("Hit any key...");
-            Console.ReadKey();
-#endif
         }
 
         /// <summary>
@@ -82,11 +87,12 @@ namespace dupimg
             //キャッシュ内で類似画像の比較を行う
             //総当たりで比較する関係上、重複が発生するのでDistinctで除外
             var compared = cache.Compare(similar).Distinct();
-            //コマンドライン引数にMoveスイッチが指定されている場合のみ実際にファイル操作を行う
+            //Moveオプションの有無で処理を分ける
             var messages = arg.IsMove ?
+                //コマンドライン引数にMoveオプションが指定されている場合は実際にファイルを移動する
                 compared.Select(obj =>
                 {
-                    //移動先にも同じフォルダ構成
+                    //移動先にも同じフォルダ構成とするため、パス文字列を置換する
                     var dstFullName = obj.FullName.Replace(arg.SrcPath, arg.DstPath);
                     try
                     {
@@ -124,54 +130,73 @@ namespace dupimg
             await cache.SyncFolderAsync(arg.SrcPath, similar, async x => Console.WriteLine((await x).FullName));
             return cache;
         }
+
+        static IEnumerable<string> CacheList(IEnumerable<KeyValuePair<string, string>> sequence)
+        {
+            const char separator = '-';
+            var name = (Key: "CacheName", Value: "CacheFile");
+            //KeyとValueそれぞれで格納されている文字列の最大長を求める
+            var length = sequence.Count() > 0
+                ? (Key: sequence.Max(x => x.Key.Length), Value: sequence.Max(x => x.Value.Length))
+                : (Key: name.Key.Length, Value: name.Value.Length);
+            //ヘッダ（カラム名とセパレータ）の生成
+            var header = new Dictionary<string, string>()
+            {
+                {name.Key, name.Value},
+                {new string(separator, length.Key), new string(separator, length.Value)}
+            };
+            //生成したヘッダに引数のシーケンスを結合し
+            //桁を揃えるため、求めた最大長の長さになるまで空白を埋めて出力
+            return header.Concat(sequence).Select(x => $"{x.Key.PadRight(length.Key)} {x.Value.PadRight(length.Value)}");
+        }
     }
 
     class Arguments : ArgsManager
     {
-        private const string nameSrcPath = "SrcPath";
-        private const string nameDstPath = "DstPath";
+        private const string nameCacheDelete = "/cachedelete";
+        private const string nameCacheList = "/cachelist";
         private const string nameMove = "/move";
+        private const string nameSrcPath = "SrcPath";
         private const string nameThreshold = "/th";
-        private const string nameDelete = "/delete";
+        public string CacheName => GetOptionValue(nameCacheDelete);
+        public string DstPath => GetOptionValue(nameMove);
+        public bool IsCacheDelete => !string.IsNullOrEmpty(CacheName);
+        public bool IsCacheList => GetSwitchValue(nameCacheList);
+        public bool IsMove => !string.IsNullOrEmpty(DstPath);
         public string SrcPath => GetParamValue(nameSrcPath);
-        public string DstPath => GetParamValue(nameDstPath);
-        public bool IsMove => GetSwitchValue(nameMove);
         public double Threshold => double.TryParse(GetOptionValue(nameThreshold), out var ret) ? ret : 100;
-        public bool IsDelete => GetSwitchValue(nameDelete);
 
         public Arguments()
         {
             //コマンドライン引数を定義する
-            RegisterParams(nameSrcPath, nameDstPath);
-            RegisterSwitches(nameMove, nameDelete);
-            RegisterOptions(nameThreshold);
+            RegisterParams(nameSrcPath);
+            RegisterSwitches(nameCacheList);
+            RegisterOptions(nameThreshold, nameMove, nameCacheDelete);
         }
 
         public override bool Analyze(string[] args)
         {
             base.Analyze(args);
-            if (!Directory.Exists(SrcPath)) throw new DirectoryNotFoundException($"{SrcPath} not found.");
-            if(!IsDelete)
+            if (!IsCacheList && !IsCacheDelete)
             {
-                //Deleteスイッチが指定されていない場合は、移動先のフォルダをチェックする
-                if (!Directory.Exists(DstPath)) throw new DirectoryNotFoundException($"{DstPath} not found.");
+                if (!Directory.Exists(SrcPath)) throw new DirectoryNotFoundException($"{SrcPath} not found.");
+                if (IsMove)
+                {
+                    //Moveオプションが指定されている場合は、移動先のフォルダをチェックする
+                    if (!Directory.Exists(DstPath)) throw new DirectoryNotFoundException($"{DstPath} not found.");
+                }
             }
             return true;
         }
 
         protected override bool IsParamComplete()
         {
-            //Move、もしくはDeleteスイッチが指定されている場合、
-            //SrcPathだけ指定されていれば良いので
-            //必須引数二つの内、一つ指定されていればOKとする
-            if(IsMove || IsDelete)
+            //CacheListスイッチあるいはCacheDeleteオプションが指定されているときは必須パラメータは無視する
+            if(IsCacheList || IsCacheDelete)
             {
-                return _params.Count(x => x.Value != "") > 0;
+                return true;
             }
-            else
-            {
-                return base.IsParamComplete();
-            }
+            return base.IsParamComplete();
         }
     }
 }

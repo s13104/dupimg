@@ -67,6 +67,11 @@ namespace dupimg.CacheFile
             return false;
         }
 
+        public virtual IEnumerable<KeyValuePair<string, string>> EnumerateSettings()
+        {
+            return _settings.AsEnumerable();
+        }
+
         public virtual void Load()
         {
             if (File.Exists(FileName))

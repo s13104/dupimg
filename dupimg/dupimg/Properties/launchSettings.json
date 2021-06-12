@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "dupimg": {
+      "commandName": "Project",
+      "commandLineArgs": "F:\\home\\s13104\\Pictures /cachelist"
+    }
+  }
+}
