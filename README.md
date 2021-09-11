@@ -8,14 +8,16 @@
 
 ### 書式
 ~~~
-dotnet dupimg.dll <target_folder> [/t <threshorld>] [/move <dest_folder>] [/delete <target_folder>]
+dotnet dupimg.dll <target_folder> [-th|--threshold <value>] [-m|--move <dest_folder>] [-cl|cachelist] [-cd|--cachedelete <target_folder>]
 ~~~
 #### \<target_folder\>  
 比較する画像が格納されているフォルダのパス
-#### /t \<threshold\>  
+#### -th|--threshold \<value\>  
 類似性の閾値1～100(%)を指定する。デフォルトは100（完全一致）
-#### /move \<dest_folder\>  
+#### -m|--move \<dest_folder\>  
 類似していると判定された画像ファイルの移動先フォルダのパス
-#### /delete \<target_folder\>  
+#### -cl|--cachelist
+キャッシュファイルの一覧表表示する
+#### -cd|--cachedelete \<target_folder\>  
 キャッシュから削除するフォルダのパス
 
