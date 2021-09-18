@@ -26,7 +26,7 @@ namespace dupimg
                 Console.Error.WriteLine(e.Message);
                 return;
             }
-            //ヘルプ表示は最優先とする
+            //ヘルプ表示は優先する
             if (myArgs.HasHelp)
             {
                 myArgs.ShowHelpText();
@@ -126,11 +126,6 @@ namespace dupimg
                 }) :
                 //コマンドライン引数にMoveオプションが指定されていない場合は、移動せず対象となるファイル名を表示する
                 compared.Select(obj => obj.FullName);
-            //比較結果をコンソールへ出力
-            //foreach (var msg in messages)
-            //{
-            //    Console.WriteLine(msg);
-            //}
         }
 
         /// <summary>

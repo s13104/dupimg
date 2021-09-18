@@ -27,7 +27,7 @@ namespace CmdLineParser
 
         public int GetParamsCount()
         {
-            return _arguments.Count + _commands.Count + _options.Count;
+            return _arguments.Count(x => x.HasValue) + _commands.Count(x => x.HasValue) + _options.Count(x => x.HasValue);
         }
 
         protected virtual bool IsArgumentsComplete()
