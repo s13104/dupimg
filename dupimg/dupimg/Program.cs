@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using dupimg.MyArgs;
 using dupimg.CacheFile;
 using SimilarImg;
 using SimilarImg.Cache;
+using CmdLineParser;
 
 namespace dupimg
 {
@@ -16,14 +16,20 @@ namespace dupimg
         static async Task MainAsync(string[] args)
         {
             //コマンドライン引数を解析
-            var myArgs = new Arguments();
+            var myArgs = new MyCmdLnParser();
             try
             {
-                myArgs.Analyze(args);
+                myArgs.Parse(args);
             }
-            catch(ArgumentException e)
+            catch (Exception e) when (e is DirectoryNotFoundException || e is ArgumentException)
             {
-                Console.WriteLine(e.Message);
+                Console.Error.WriteLine(e.Message);
+                return;
+            }
+            //ヘルプ表示は優先する
+            if (myArgs.HasHelp)
+            {
+                myArgs.ShowHelpText();
                 return;
             }
 
@@ -31,29 +37,41 @@ namespace dupimg
             var cacheSettings = new CacheManager<SimilarImageCache, HashedImage>("dupimg.cache.json");
 
             //CacheListスイッチが指定されている場合の処理
-            if(myArgs.IsCacheList)
+            if(myArgs.CacheList.HasValue)
             {
                 //キャッシュ設定ファイルの中身を表示する
-                foreach(var txt in CacheList(cacheSettings.EnumerateSettings())) Console.WriteLine(txt);
+                foreach (var txt in CacheList(cacheSettings.EnumerateSettings()))
+                {
+                    Console.WriteLine(txt);
+                }
                 return;
             }
 
             //CacheDeleteオプションが指定されている場合の処理
-            if (myArgs.IsCacheDelete)
+            if (myArgs.CacheDelete.HasValue)
             {
                 //キャッシュファイルを削除
-                if (cacheSettings.Delete(myArgs.CacheName)) Console.WriteLine("Cache deleted.");
+                if (cacheSettings.Delete(myArgs.CacheDelete.Value))
+                {
+                    Console.WriteLine("Cache deleted.");
+                }
                 return;
             }
 
-            var similar = new SimilarImage(myArgs.Threshold);
+            var similar = new SimilarImage(myArgs.Threshold.Value);
             //指定フォルダ内の画像ファイルをハッシュに変換し、キャッシュする。
+            Console.WriteLine($"Processing...");
             var cache = await ProcessLoadToCacheAsync(myArgs, similar, cacheSettings);
-            //ハッシュ変換時に発生したエラーを通知（コンソールへ出力）
+            //ハッシュ変換時に発生したエラーをコンソールへ通知（内容はエラーファイルへ出力）
             NoticeError(cache);
             //ハッシュ情報を元に画像を総当たり比較する
-            ProcessCompare(myArgs, similar, cache);
-            //比較結果をキャッシュに反映
+            Console.WriteLine("Comparing...");
+            foreach (var msg in ProcessCompare(myArgs, similar, cache))
+            {
+                //比較結果をコンソールへ出力
+                Console.WriteLine(msg);
+            }
+            //比較後のキャッシュを保存
             cache.Save();
         }
 
@@ -71,7 +89,8 @@ namespace dupimg
                 //エラーファイルへ出力する
                 var path = "errors.txt";
                 File.WriteAllLines(path, errors.Select(x => $"{x.ErrMessage};{x.FullName}"));
-                Console.WriteLine($"{cnt} file(s) has error. See '{path}'");
+                //エラーが発生したことをコンソールへ出力
+                Console.Error.WriteLine($"{cnt} file(s) has error. See '{path}'");
             }
         }
 
@@ -81,19 +100,18 @@ namespace dupimg
         /// <param name="arg">コマンドライン引数</param>
         /// <param name="similar">類似画像クラス</param>
         /// <param name="cache">ハッシュ化した画像を格納したキャッシュ</param>
-        static void ProcessCompare(Arguments arg, SimilarImage similar, SimilarImageCache cache)
+        static IEnumerable<string> ProcessCompare(MyCmdLnParser arg, SimilarImage similar, SimilarImageCache cache)
         {
-            Console.WriteLine("Comparing...");
             //キャッシュ内で類似画像の比較を行う
             //総当たりで比較する関係上、重複が発生するのでDistinctで除外
             var compared = cache.Compare(similar).Distinct();
             //Moveオプションの有無で処理を分ける
-            var messages = arg.IsMove ?
+            return arg.Move.HasValue ?
                 //コマンドライン引数にMoveオプションが指定されている場合は実際にファイルを移動する
                 compared.Select(obj =>
                 {
                     //移動先にも同じフォルダ構成とするため、パス文字列を置換する
-                    var dstFullName = obj.FullName.Replace(arg.SrcPath, arg.DstPath);
+                    var dstFullName = obj.FullName.Replace(arg.SrcPath.Value, arg.Move.Value);
                     try
                     {
                         //ファイルを移動する
@@ -106,10 +124,8 @@ namespace dupimg
                         return e.Message;
                     }
                 }) :
-                //コマンドライン引数にMoveスイッチが指定されていない場合は、移動せず対象となるファイル名を表示する
+                //コマンドライン引数にMoveオプションが指定されていない場合は、移動せず対象となるファイル名を表示する
                 compared.Select(obj => obj.FullName);
-            //比較結果をコンソールへ出力
-            foreach (var msg in messages) Console.WriteLine(msg);
         }
 
         /// <summary>
@@ -119,15 +135,14 @@ namespace dupimg
         /// <param name="similar">類似画像クラス</param>
         /// <param name="cacheManager">キャッシュ設定</param>
         /// <returns>ハッシュ化した画像を格納したキャッシュ</returns>
-        static async Task<SimilarImageCache> ProcessLoadToCacheAsync(Arguments arg, SimilarImage similar, CacheManager<SimilarImageCache, HashedImage> cacheManager)
+        static async Task<SimilarImageCache> ProcessLoadToCacheAsync(MyCmdLnParser arg, SimilarImage similar, CacheManager<SimilarImageCache, HashedImage> cacheManager)
         {
-            Console.WriteLine($"Processing...");
             //キャッシュファイルを読込む
             //新規の場合、比較元フォルダ単位でキャッシュファイルを作成する
-            var cache = cacheManager.Create(arg.SrcPath);
+            var cache = cacheManager.Create(arg.SrcPath.Value);
             //キャッシュファイルの内容とフォルダを同期しながら画像ファイルをハッシュ化
             //ハッシュ化処理が終了した画像のファイル名をコンソールへ表示する
-            await cache.SyncFolderAsync(arg.SrcPath, similar, async x => Console.WriteLine((await x).FullName));
+            await cache.SyncFolderAsync(arg.SrcPath.Value, similar, async x => Console.WriteLine((await x).FullName));
             return cache;
         }
 
@@ -151,52 +166,48 @@ namespace dupimg
         }
     }
 
-    class Arguments : ArgsManager
+    class MyCmdLnParser : CommandLineParser
     {
-        private const string nameCacheDelete = "/cachedelete";
-        private const string nameCacheList = "/cachelist";
-        private const string nameMove = "/move";
-        private const string nameSrcPath = "SrcPath";
-        private const string nameThreshold = "/th";
-        public string CacheName => GetOptionValue(nameCacheDelete);
-        public string DstPath => GetOptionValue(nameMove);
-        public bool IsCacheDelete => !string.IsNullOrEmpty(CacheName);
-        public bool IsCacheList => GetSwitchValue(nameCacheList);
-        public bool IsMove => !string.IsNullOrEmpty(DstPath);
-        public string SrcPath => GetParamValue(nameSrcPath);
-        public double Threshold => double.TryParse(GetOptionValue(nameThreshold), out var ret) ? ret : 100;
+        public Option CacheDelete { get; }
+        public Command CacheList { get; }
+        public Option Move { get; }
+        public Argument SrcPath { get; }
+        public Option<int> Threshold { get; }
 
-        public Arguments()
+        public MyCmdLnParser()
         {
-            //コマンドライン引数を定義する
-            RegisterParams(nameSrcPath);
-            RegisterSwitches(nameCacheList);
-            RegisterOptions(nameThreshold, nameMove, nameCacheDelete);
+            Name = "dotnet dupimg.dll";
+            SrcPath = RegistArgument("SrcPath", "画像ファイルが格納されているフォルダのパス", false);
+            CacheList = RegistCommand("-cl|--cachelist", "キャッシュファイルの一覧を表示する");
+            Threshold = RegistOption("-th|--threshold", "類似比較の閾値を0～100の間で指定する。省略した場合は100", 100, new ValueParserInteger(0, 100));
+            Move = RegistOption("-m|--move", "類似画像の移動先フォルダのパス");
+            CacheDelete = RegistOption("-cd|--cachedelete", "指定したキャッシュファイルを削除する");
         }
 
-        public override bool Analyze(string[] args)
+        public override void Parse(string[] args)
         {
-            base.Analyze(args);
-            if (!IsCacheList && !IsCacheDelete)
+            base.Parse(args);
+            if(SrcPath.HasValue)
             {
-                if (!Directory.Exists(SrcPath)) throw new DirectoryNotFoundException($"{SrcPath} not found.");
-                if (IsMove)
+                //SrcPathが指定されている場合は、フォルダをチェックする
+                if (!Directory.Exists(SrcPath.Value))
                 {
-                    //Moveオプションが指定されている場合は、移動先のフォルダをチェックする
-                    if (!Directory.Exists(DstPath)) throw new DirectoryNotFoundException($"{DstPath} not found.");
+                    throw new DirectoryNotFoundException($"{SrcPath.Value} not found.");
                 }
             }
-            return true;
-        }
-
-        protected override bool IsParamComplete()
-        {
-            //CacheListスイッチあるいはCacheDeleteオプションが指定されているときは必須パラメータは無視する
-            if(IsCacheList || IsCacheDelete)
+            if (Move.HasValue)
             {
-                return true;
+                //Moveオプションが指定されている場合は、移動先のフォルダをチェックする
+                if (!Directory.Exists(Move.Value))
+                {
+                    throw new DirectoryNotFoundException($"{Move.Value} not found.");
+                }
             }
-            return base.IsParamComplete();
+            if (GetParamsCount() == 0)
+            {
+                //引数が一つも設定されていなければヘルプを表示する
+                HasHelp = true;
+            }
         }
     }
 }
