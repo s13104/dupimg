@@ -21,6 +21,11 @@ dotnet dupimg.dll <target_folder> [-th|--threshold <value>] [-m|--move <dest_fol
 #### -cd|--cachedelete \<target_folder\>  
 キャッシュから削除するフォルダのパス
 
+### 依存関係
+* CoenM.ImageSharp.ImageHash(1.0.0)
+* Microsoft.NETCore.App(2.1.0)
+* System.Text.Json(5.0.2)
+
 ### 開発環境
 * Visual Studio 2019
 * .NET Core 2.1
