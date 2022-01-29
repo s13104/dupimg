@@ -24,20 +24,22 @@ dupimg <target_folder> [-th|--threshold <value>] [-m|--move <dest_folder>] [-cl|
 ### 使い方
 画像が格納されているフォルダを指定します。
 ~~~
-dupimg C:\Users\Hoge\Pictures
+> dupimg C:\Users\Hoge\Pictures
 ~~~
 判定結果が画面に表示されます。--thresholdオプションを指定しないので完全（100%）一致した画像です。
 ~~~
+> dupimg C:\Users\Hoge\Pictures
 C:\Users\Hoge\Pictures\foo.jpg
 C:\Users\Hoge\Pictures\bar.png
 C:\Users\Hoge\Pictures\LastYear\foo_copy(1).jpg
 ~~~
 次は、--thresholdオプションを指定し、完全一致ではなく類似画像も探します。
 ~~~
-dupimg C:\Users\Hoge\Pictures --threshold 95
+> dupimg C:\Users\Hoge\Pictures --threshold 95
 ~~~
 判定結果が画面に表示され、類似している画像（bar2.png）が加わりました。
 ~~~
+> dupimg C:\Users\Hoge\Pictures --threshold 95
 C:\Users\Hoge\Pictures\foo.jpg
 C:\Users\Hoge\Pictures\bar.png
 C:\Users\Hoge\Pictures\bar2.png
@@ -45,7 +47,7 @@ C:\Users\Hoge\Pictures\LastYear\foo_copy(1).jpg
 ~~~
 最後に、類似した画像も含め重複した画像なので、それらを別のフォルダへ移動させます。
 ~~~
-dupimg C:\Users\Hoge\Pictures --threshold 95 --move D:\tmp\Duplicate
+> dupimg C:\Users\Hoge\Pictures --threshold 95 --move D:\tmp\Duplicate
 ~~~
 
 ### 機能詳細
