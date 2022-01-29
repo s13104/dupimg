@@ -26,7 +26,7 @@ dupimg <target_folder> [-th|--threshold <value>] [-m|--move <dest_folder>] [-cl|
 ~~~
 dupimg C:\Users\Hoge\Pictures
 ~~~
-判定結果が画面に表示されます。--thresholdオプションを指定しないので完全一致した画像です。
+判定結果が画面に表示されます。--thresholdオプションを指定しないので完全（100%）一致した画像です。
 ~~~
 C:\Users\Hoge\Pictures\foo.jpg
 C:\Users\Hoge\Pictures\bar.png
