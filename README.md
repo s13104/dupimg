@@ -17,7 +17,7 @@ dupimg <target_folder> [-th|--threshold <value>] [-m|--move <dest_folder>] [-cl|
 #### -m|--move \<dest_folder\>  
 類似していると判定された画像ファイルの移動先フォルダのパス
 #### -cl|--cachelist
-キャッシュファイルの一覧表表示する
+キャッシュの一覧を表示する
 #### -cd|--cachedelete \<target_folder\>  
 キャッシュから削除するフォルダのパス
 
