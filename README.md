@@ -62,7 +62,7 @@ C:\Users\Hoge\Pictures\LastYear\foo_copy(1).jpg
 * --moveオプションを指定して画像を移動させた場合、移動先で移動元のフォルダパスを再現します。
 
 ### インストール
-#### Windows 64bit
+#### Windows
 * dupimg_win_x64.zipファイルをダウンロードし、適当なフォルダに解凍してください。
 #### Linux
 * dupimg_linux_x64.zipファイルをダウンロードし、適当なフォルダに解凍してください。
