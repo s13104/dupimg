@@ -63,7 +63,7 @@ dotnet dupimg.dll C:\Users\Hoge\Pictures --threshold 95 --move D:\tmp\Duplicate
 #### Windows 64bit
 dupimg.zipファイルをダウンロードし、適当なフォルダに解凍してください。
 #### Linux
-ソースコードをダウンロード後、VS等でビルドします。
+ソースコードをダウンロード後、VSCode等でビルドします。
 
 ### 依存関係
 * CoenM.ImageSharp.ImageHash(1.0.0)
