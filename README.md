@@ -63,16 +63,16 @@ dotnet dupimg.dll C:\Users\Hoge\Pictures --threshold 95 --move D:\tmp\Duplicate
 #### Windows 64bit
 dupimg.zipファイルをダウンロードし、適当なフォルダに解凍してください。
 #### Linux
-ソースコードをダウンロード後、VSCode等でビルドします。
+ソースコードをダウンロード後、VS等でビルドします。
 
 ### 依存関係
 * CoenM.ImageSharp.ImageHash(1.0.0)
-* Microsoft.NETCore.App(2.1.0)
+* Microsoft.NETCore.App
 * System.Text.Json(5.0.2)
 
 ### 開発環境
-* Visual Studio 2019
-* .NET Core 2.1
+* Visual Studio 2022
+* .NET6
 
 ### プラットフォーム
 * Windows 10
