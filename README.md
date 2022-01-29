@@ -34,7 +34,7 @@ C:\Users\Hoge\Pictures\LastYear\foo_copy(1).jpg
 ~~~
 次は、--thresholdオプションを指定し、完全一致ではなく類似画像も探します。
 ~~~
-dotnet dupimg.dll C:\Users\Hoge\Pictures --threshold 95
+dupimg C:\Users\Hoge\Pictures --threshold 95
 ~~~
 判定結果が画面に表示され、類似している画像（bar2.png）が加わりました。
 ~~~
@@ -45,7 +45,7 @@ C:\Users\Hoge\Pictures\LastYear\foo_copy(1).jpg
 ~~~
 最後に、類似した画像も含め重複した画像なので、それらを別のフォルダへ移動させます。
 ~~~
-dotnet dupimg.dll C:\Users\Hoge\Pictures --threshold 95 --move D:\tmp\Duplicate
+dupimg C:\Users\Hoge\Pictures --threshold 95 --move D:\tmp\Duplicate
 ~~~
 
 ### 機能詳細
@@ -61,9 +61,9 @@ dotnet dupimg.dll C:\Users\Hoge\Pictures --threshold 95 --move D:\tmp\Duplicate
 
 ### インストール
 #### Windows 64bit
-dupimg_win_x64.zipファイルをダウンロードし、適当なフォルダに解凍してください。
+* dupimg_win_x64.zipファイルをダウンロードし、適当なフォルダに解凍してください。
 #### Linux
-dupimg_linux_x64.zipファイルをダウンロードし、適当なフォルダに解凍してください。
+* dupimg_linux_x64.zipファイルをダウンロードし、適当なフォルダに解凍してください。
 
 ### 依存関係
 * CoenM.ImageSharp.ImageHash(1.0.0)
