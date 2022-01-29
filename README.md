@@ -24,7 +24,7 @@ dotnet dupimg.dll <target_folder> [-th|--threshold <value>] [-m|--move <dest_fol
 ### 使い方
 画像が格納されているフォルダを指定します。
 ~~~
-dotnet dupimg.dll C:\Users\Hoge\Pictures
+dupimg C:\Users\Hoge\Pictures
 ~~~
 判定結果が画面に表示されます。--thresholdオプションを指定しないので完全一致した画像です。
 ~~~
@@ -61,14 +61,16 @@ dotnet dupimg.dll C:\Users\Hoge\Pictures --threshold 95 --move D:\tmp\Duplicate
 
 ### インストール
 #### Windows 64bit
-dupimg.zipファイルをダウンロードし、適当なフォルダに解凍してください。
+dupimg_win_x64.zipファイルをダウンロードし、適当なフォルダに解凍してください。
 #### Linux
-ソースコードをダウンロード後、VSCode等でビルドします。
+dupimg_linux_x64.zipファイルをダウンロードし、適当なフォルダに解凍してください。
 
 ### 依存関係
 * CoenM.ImageSharp.ImageHash(1.0.0)
 * Microsoft.NETCore.App
 * System.Text.Json(5.0.2)
+
+.NET6対応の際に、単一ファイルになりました。
 
 ### 開発環境
 * Visual Studio 2022
