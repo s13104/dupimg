@@ -29,6 +29,9 @@ dupimg <target_folder> [-th|--threshold <value>] [-m|--move <dest_folder>] [-cl|
 判定結果が画面に表示されます。--thresholdオプションを指定しないので完全（100%）一致した画像です。
 ~~~
 > dupimg C:\Users\Hoge\Pictures
+Proccessing...
+（略）
+Comparing...
 C:\Users\Hoge\Pictures\foo.jpg
 C:\Users\Hoge\Pictures\bar.png
 C:\Users\Hoge\Pictures\LastYear\foo_copy(1).jpg
@@ -40,6 +43,9 @@ C:\Users\Hoge\Pictures\LastYear\foo_copy(1).jpg
 判定結果が画面に表示され、類似している画像（bar2.png）が加わりました。
 ~~~
 > dupimg C:\Users\Hoge\Pictures --threshold 95
+Proccessing...
+（略）
+Comparing...
 C:\Users\Hoge\Pictures\foo.jpg
 C:\Users\Hoge\Pictures\bar.png
 C:\Users\Hoge\Pictures\bar2.png
