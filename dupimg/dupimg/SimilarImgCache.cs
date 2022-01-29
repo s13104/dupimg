@@ -11,9 +11,7 @@ namespace SimilarImg.Cache
     {
         public string Pattern { get; set; } = "*.*";
 
-        public SimilarImageCache() : base()
-        {
-        }
+        public SimilarImageCache() : base() { }
 
         public IEnumerable<HashedImage> Compare(SimilarImage similar)
         {
@@ -34,7 +32,10 @@ namespace SimilarImg.Cache
 
         public IEnumerable<FileInfo> EnumerateFiles(string path)
         {
-            if (!Directory.Exists(path)) throw new DirectoryNotFoundException();
+            if (!Directory.Exists(path))
+            {
+                throw new DirectoryNotFoundException();
+            }
             var dirInfo = new DirectoryInfo(path);
             var options = new EnumerationOptions() { RecurseSubdirectories = true, };
             return dirInfo.EnumerateFiles(Pattern, options);

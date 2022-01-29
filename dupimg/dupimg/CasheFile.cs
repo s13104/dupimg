@@ -24,7 +24,7 @@ namespace dupimg.CacheFile
         where TCache : CacheFile<T>, new()
         where T : ICacheData<T>, new()
     {
-        private Dictionary<string, string> _settings = new Dictionary<string, string>();
+        private Dictionary<string, string> _settings = new();
         public string FileName { get; } = string.Empty; //キャッシュ設定ファイル名
 
         public CacheManager(string filename)
@@ -98,14 +98,12 @@ namespace dupimg.CacheFile
     class CacheFile<T>
         where T : ICacheData<T>, new()
     {
-        private ConcurrentDictionary<T, T> _cache = new ConcurrentDictionary<T, T>();
+        private readonly ConcurrentDictionary<T, T> _cache = new();
         public int Count => _cache.Count;
         public string FileName { get; set; } = string.Empty;
         public ICollection<T> Values => _cache.Values;
 
-        public CacheFile()
-        {
-        }
+        public CacheFile() { }
         public CacheFile(string filename)
         {
             FileName = filename;
@@ -113,7 +111,7 @@ namespace dupimg.CacheFile
 
         public async Task AddOrUpdateAsync(IEnumerable<T> sequence, Func<T, T> addFactory, Action<Task<T>> progress = null)
         {
-            progress = progress ?? (x => { });
+            progress ??= (x => { });
             //キャッシュの洗い替えをタスク化
             var tasks = sequence.AsParallel()
                 .Select(x =>
@@ -135,22 +133,22 @@ namespace dupimg.CacheFile
 
         public virtual void Load()
         {
-            if (!File.Exists(FileName)) return;
-            using (var sr = new StreamReader(FileName))
+            if (!File.Exists(FileName))
             {
-                var row = string.Empty;
-                while ((row = sr.ReadLine()) != null)
-                {
-                    var obj = new T();
-                    _cache.TryAdd(obj, obj.Deserialize(row));
-                }
+                return;
+            }
+            using var sr = new StreamReader(FileName);
+            var row = string.Empty;
+            while ((row = sr.ReadLine()) != null)
+            {
+                var obj = new T();
+                _cache.TryAdd(obj, obj.Deserialize(row));
             }
         }
 
         public virtual void Save()
         {
-            var contents = Values.AsParallel().Select(x => $"{x.Serialize()}");
-            Save(contents.AsSequential());
+            Save(Values.AsParallel().Select(x => $"{x.Serialize()}").AsSequential());
         }
         public void Save(IEnumerable<string> sequence)
         {

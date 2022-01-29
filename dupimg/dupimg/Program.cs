@@ -78,7 +78,7 @@ namespace dupimg
         /// <summary>
         /// ハッシュ化時にエラーが発生したことを通知する。
         /// </summary>
-        /// <param name="similar">類似画像クラス</param>
+        /// <param name="cacge">類似画像キャッシュ</param>
         static void NoticeError(SimilarImageCache cache)
         {
             //ハッシュ値が0のものはエラーとみなす
@@ -149,15 +149,15 @@ namespace dupimg
         static IEnumerable<string> CacheList(IEnumerable<KeyValuePair<string, string>> sequence)
         {
             const char separator = '-';
-            var name = (Key: "CacheName", Value: "CacheFile");
+            var (Key, Value) = ("CacheName", "CacheFile");
             //KeyとValueそれぞれで格納されている文字列の最大長を求める
-            var length = sequence.Count() > 0
+            var length = sequence.Any()
                 ? (Key: sequence.Max(x => x.Key.Length), Value: sequence.Max(x => x.Value.Length))
-                : (Key: name.Key.Length, Value: name.Value.Length);
+                : (Key: Key.Length, Value: Value.Length);
             //ヘッダ（カラム名とセパレータ）の生成
             var header = new Dictionary<string, string>()
             {
-                {name.Key, name.Value},
+                {Key, Value},
                 {new string(separator, length.Key), new string(separator, length.Value)}
             };
             //生成したヘッダに引数のシーケンスを結合し
@@ -177,7 +177,7 @@ namespace dupimg
         public MyCmdLnParser()
         {
             Name = "dotnet dupimg.dll";
-            SrcPath = RegistArgument("SrcPath", "画像ファイルが格納されているフォルダのパス", false);
+            SrcPath = RegistArgument("SourcePath", "画像ファイルが格納されているフォルダのパス", false);
             CacheList = RegistCommand("-cl|--cachelist", "キャッシュファイルの一覧を表示する");
             Threshold = RegistOption("-th|--threshold", "類似比較の閾値を0～100の間で指定する。省略した場合は100", 100, new ValueParserInteger(0, 100));
             Move = RegistOption("-m|--move", "類似画像の移動先フォルダのパス");

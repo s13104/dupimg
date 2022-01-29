@@ -25,9 +25,7 @@ namespace SimilarImg
         public string ErrMessage { get; protected set; } = string.Empty;
         public long Timestamp { get; protected set; } = 0;
 
-        public HashedImage()
-        {
-        }
+        public HashedImage() { }
         public HashedImage(FileInfo fi)
         {
             Init(fi);
@@ -132,9 +130,7 @@ namespace SimilarImg
 
     class HashedImageComparer : HashedImageComparer<HashedImage>
     {
-        public HashedImageComparer(double threshold) : base(threshold)
-        {
-        }
+        public HashedImageComparer(double threshold) : base(threshold) { }
 
         public override bool Equals(HashedImage x, HashedImage y)
         {
@@ -161,8 +157,11 @@ namespace SimilarImg
                 //.NET Core 2.2以前ではMoveメソッドに上書きオプションがない。
                 //そのため例外を発生させないよう事前に移動先のファイルを削除する。
                 //Deleteメソッドは対象ファイルが存在しない場合でも例外をスローしない。
-                File.Delete(dst);
-                File.Move(obj.FullName, dst);
+                //File.Delete(dst);
+                //File.Move(obj.FullName, dst);
+                //
+                //.NET6対応に合わせ、メソッドを変更
+                File.Move(obj.FullName, dst, true);
             }
         }
     }
@@ -184,8 +183,6 @@ namespace SimilarImg
 
     class SimilarImage : SimilarImage<HashedImage>
     {
-        public SimilarImage(double threshold) : base(new HashedImageComparer(threshold))
-        {
-        }
+        public SimilarImage(double threshold) : base(new HashedImageComparer(threshold)) { }
     }
 }
