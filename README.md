@@ -8,7 +8,7 @@
 
 ### 書式
 ~~~
-dotnet dupimg.dll <target_folder> [-th|--threshold <value>] [-m|--move <dest_folder>] [-cl|cachelist] [-cd|--cachedelete <target_folder>]
+dupimg <target_folder> [-th|--threshold <value>] [-m|--move <dest_folder>] [-cl|cachelist] [-cd|--cachedelete <target_folder>]
 ~~~
 #### \<target_folder\>  
 比較する画像が格納されているフォルダのパス
